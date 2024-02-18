@@ -1,6 +1,6 @@
 ### Name: piecewise_regressor
 # Author: tomio kobayashi
-# Version: 1.0.0
+# Version: 1.0.1
 # Date: 2024/02/18
 
 
@@ -33,7 +33,7 @@ class piecewise_regressor:
         for j in range(len(models)-1):
             if j == 0 and (aic[0] < aic[1] or bic[0] < bic[1]):
                 break
-            if j > 0 and (aic[j] < aic[j+1] and bic[j] < bic[j+1]):
+            if j > 0 and (aic[j] < aic[j+1] or bic[j] < bic[j+1]):
                 num_clusters = j+1
                 break
 
