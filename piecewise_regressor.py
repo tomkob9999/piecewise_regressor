@@ -1,6 +1,6 @@
 ### Name: piecewise_regressor
 # Author: tomio kobayashi
-# Version: 1.0.1
+# Version: 1.0.2
 # Date: 2024/02/18
 
 
@@ -30,12 +30,23 @@ class piecewise_regressor:
         bic = [model.bic(X) for model in models]
 
         num_clusters = 1
-        for j in range(len(models)-1):
-            if j == 0 and (aic[0] < aic[1] or bic[0] < bic[1]):
+        
+#         for j in range(len(models)-1):
+#             if j == 0 and (aic[0] < aic[1] or bic[0] < bic[1]):
+#                 break
+#             if j > 0 and (aic[j] < aic[j+1] or bic[j] < bic[j+1]):
+#                 num_clusters = j+1
+#                 break
+        min_aic = float("inf")
+        min_bic = float("inf")
+        for j in range(len(models)):
+            if aic[j] > min_aic and bic[j] > min_bic:
+                num_clusters = j
                 break
-            if j > 0 and (aic[j] < aic[j+1] or bic[j] < bic[j+1]):
-                num_clusters = j+1
-                break
+            if aic[j] < min_aic:
+                min_aic = aic[j] 
+            if bic[j] < min_bic:
+                min_bic = bic[j] 
 
         X_clust = {}
         y_clust = {}
