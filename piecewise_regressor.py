@@ -1,6 +1,6 @@
 ### Name: piecewise_regressor
 # Author: tomio kobayashi
-# Version: 1.0.2
+# Version: 1.0.3
 # Date: 2024/02/18
 
 
@@ -28,26 +28,19 @@ class piecewise_regressor:
         models = [GaussianMixture(n, covariance_type='full').fit(X) for n in n_components]
         aic = [model.aic(X) for model in models]
         bic = [model.bic(X) for model in models]
-
-        num_clusters = 1
         
-#         for j in range(len(models)-1):
-#             if j == 0 and (aic[0] < aic[1] or bic[0] < bic[1]):
-#                 break
-#             if j > 0 and (aic[j] < aic[j+1] or bic[j] < bic[j+1]):
-#                 num_clusters = j+1
-#                 break
+        num_clusters = 1
         min_aic = float("inf")
         min_bic = float("inf")
         for j in range(len(models)):
-            if aic[j] > min_aic and bic[j] > min_bic:
+            if aic[j] > min_aic or bic[j] > min_bic:
                 num_clusters = j
                 break
             if aic[j] < min_aic:
                 min_aic = aic[j] 
             if bic[j] < min_bic:
                 min_bic = bic[j] 
-
+        
         X_clust = {}
         y_clust = {}
         if num_clusters > 1:
@@ -72,7 +65,6 @@ class piecewise_regressor:
                     if not all([cf == 0 for cf in coefs]):
                         self.models[k] = model
                 except Exception as e:
-#                     print("cluster", i, "could not be regressed", e)
                     if self.regression_type == "multinomial" or self.regression_type == "multi" or self.regression_type == "logistic":
 
                         count_dict = Counter(y_clust[k])
@@ -93,9 +85,6 @@ class piecewise_regressor:
         for k, v in self.models.items():
             self.coef_ = v.coef_
             self.intercept_ = v.intercept_
-        
-#         print(self.models)
-#         print(self.direct_val)
         
     def predict(self, X):
         if len(self.models) == 1 and len(self.direct_val) == 0:
