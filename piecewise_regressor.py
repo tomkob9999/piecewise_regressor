@@ -1,6 +1,6 @@
 ### Name: piecewise_regressor
 # Author: tomio kobayashi
-# Version: 1.0.3
+# Version: 1.0.4
 # Date: 2024/02/18
 
 
@@ -12,7 +12,7 @@ from collections import Counter
 
 class piecewise_regressor:
     
-    def __init__(self, regression_type="linear", max_clusters=10):
+    def __init__(self, regression_type="linear", max_clusters=6):
     # regression_type = {"linear", "multinomial", "logistic"}
         self.gmm = None
         self.regression_type = regression_type
@@ -21,31 +21,56 @@ class piecewise_regressor:
         self.direct_val = {}
         self.coef_ = None
         self.intercept_ = None
+        self.all_model = None
         
     def fit(self, X, y):
 
+        if self.regression_type == "multinomial" or self.regression_type == "multi":
+            self.all_model = LogisticRegression(multi_class='multinomial', solver='lbfgs', max_iter=1000)
+        elif self.regression_type == "logistic":
+            self.all_model = LogisticRegression(solver='lbfgs', max_iter=1000)
+        else:
+            self.all_model = LinearRegression()
+
+        self.all_model.fit(X, y)
+            
         n_components = np.arange(1, self.max_clusters)
-        models = [GaussianMixture(n, covariance_type='full').fit(X) for n in n_components]
+        
+        models = []
+        try:
+            models = [GaussianMixture(n, covariance_type='full').fit(X) for n in n_components]
+        except Exception as e:
+            return
         aic = [model.aic(X) for model in models]
         bic = [model.bic(X) for model in models]
+#         print("aic", aic)
+#         print("bic", bic)
         
         num_clusters = 1
         min_aic = float("inf")
         min_bic = float("inf")
+        aic_up = False
+        bic_up = False
         for j in range(len(models)):
-            if aic[j] > min_aic and bic[j] > min_bic:
-                num_clusters = j
-                break
             if aic[j] < min_aic:
-                min_aic = aic[j] 
+                min_aic = aic[j]
+            else:
+                aic_up = True
             if bic[j] < min_bic:
                 min_bic = bic[j] 
+            else:
+                bic_up = True
+            if aic_up or bic_up:
+                num_clusters = j
+                break
         
+#         print("num_clusters", num_clusters)
         X_clust = {}
         y_clust = {}
         if num_clusters > 1:
-            self.gmm = GaussianMixture(n_components=num_clusters)
-            self.gmm.fit(X)
+#             self.gmm = GaussianMixture(n_components=num_clusters)
+#             self.gmm.fit(X)
+            self.gmm = models[num_clusters-1]
             cluster_labels = self.gmm.predict(X)
             for i in range(max(cluster_labels)+1):
                 X_clust[i] = np.array([X[j] for j, x in enumerate(cluster_labels) if x == i])
@@ -70,25 +95,20 @@ class piecewise_regressor:
                         count_dict = Counter(y_clust[k])
                         if len(count_dict) == 1:
                             self.direct_val[k] = y_clust[k][0]
+
+        if len(self.models) > 0:
+            for k, v in self.models.items():
+                self.coef_ = v.coef_
+                self.intercept_ = v.intercept_
+                break
         else:
-            model = None
-            if self.regression_type == "multinomial" or self.regression_type == "multi":
-                model = LogisticRegression(multi_class='multinomial', solver='lbfgs', max_iter=1000)
-            elif self.regression_type == "logistic":
-                model = LogisticRegression(solver='lbfgs', max_iter=1000)
-            else:
-                model = LinearRegression()
-
-            model.fit(X, y)
-            self.models[0] = model
-
-        for k, v in self.models.items():
-            self.coef_ = v.coef_
-            self.intercept_ = v.intercept_
+            self.coef_ = self.all_model.coef_
+            self.intercept_ = self.all_model.intercept_
+            
         
     def predict(self, X):
-        if len(self.models) == 1 and len(self.direct_val) == 0:
-            return self.models[0].predict(X)
+        if len(self.models) == 0 and len(self.direct_val) == 0:
+            return self.all_model.predict(X)
         else:
             res = []
             for x in X:
@@ -99,5 +119,5 @@ class piecewise_regressor:
                     if clust in self.models:
                         res.append(self.models[clust].predict([x])[0])
                     else:
-                        res.append(0)
+                        res.append(self.all_model.predict([x])[0])
         return np.array(res)
