@@ -1,7 +1,7 @@
 ### Name: piecewise_regressor
 # Author: tomio kobayashi
-# Version: 1.0.4
-# Date: 2024/02/18
+# Version: 1.0.5
+# Date: 2024/02/19
 
 
 import numpy as np
@@ -12,7 +12,7 @@ from collections import Counter
 
 class piecewise_regressor:
     
-    def __init__(self, regression_type="linear", max_clusters=6):
+    def __init__(self, regression_type="linear", max_clusters=20):
     # regression_type = {"linear", "multinomial", "logistic"}
         self.gmm = None
         self.regression_type = regression_type
@@ -23,7 +23,7 @@ class piecewise_regressor:
         self.intercept_ = None
         self.all_model = None
         
-    def fit(self, X, y):
+    def fit(self, X, y, use_aic=True):
 
         if self.regression_type == "multinomial" or self.regression_type == "multi":
             self.all_model = LogisticRegression(multi_class='multinomial', solver='lbfgs', max_iter=1000)
@@ -33,44 +33,38 @@ class piecewise_regressor:
             self.all_model = LinearRegression()
 
         self.all_model.fit(X, y)
-            
-        n_components = np.arange(1, self.max_clusters)
-        
-        models = []
-        try:
-            models = [GaussianMixture(n, covariance_type='full').fit(X) for n in n_components]
-        except Exception as e:
-            return
-        aic = [model.aic(X) for model in models]
-        bic = [model.bic(X) for model in models]
-#         print("aic", aic)
-#         print("bic", bic)
-        
+
         num_clusters = 1
-        min_aic = float("inf")
-        min_bic = float("inf")
-        aic_up = False
-        bic_up = False
-        for j in range(len(models)):
-            if aic[j] < min_aic:
-                min_aic = aic[j]
-            else:
-                aic_up = True
-            if bic[j] < min_bic:
-                min_bic = bic[j] 
-            else:
-                bic_up = True
-            if aic_up or bic_up:
-                num_clusters = j
-                break
-        
-#         print("num_clusters", num_clusters)
+        gmm = None
+        prev_gmm = None
+        prev_aic = float("inf")
+        prev_bic = float("inf")
+        for n in range(1, self.max_clusters+1, 1):
+            try:
+                gmm = GaussianMixture(n, covariance_type='full').fit(X)
+                aic = gmm.aic(X)
+                bic = gmm.bic(X)
+#                 print("n", n, "prev_aic", prev_aic, "aic", aic)
+#                 print("n", n, "prev_bic", prev_bic, "bic", bic)
+                num_clusters = n-1
+                if (use_aic and aic > prev_aic) or (not use_aic and bic > prev_bic):
+                    gmm = prev_gmm
+                    break
+                prev_aic = aic
+                prev_bic = bic
+                prev_gmm = gmm
+            except Exception as e:
+                print(e)
+                if n > 1:
+                    gmm = prev_gmm
+                    num_clusters = n-1
+                else:
+                    return
+                
         X_clust = {}
         y_clust = {}
         if num_clusters > 1:
-#             self.gmm = GaussianMixture(n_components=num_clusters)
-#             self.gmm.fit(X)
-            self.gmm = models[num_clusters-1]
+            self.gmm = gmm
             cluster_labels = self.gmm.predict(X)
             for i in range(max(cluster_labels)+1):
                 X_clust[i] = np.array([X[j] for j, x in enumerate(cluster_labels) if x == i])
@@ -90,11 +84,14 @@ class piecewise_regressor:
                     if not all([cf == 0 for cf in coefs]):
                         self.models[k] = model
                 except Exception as e:
-                    if self.regression_type == "multinomial" or self.regression_type == "multi" or self.regression_type == "logistic":
-
+                    if isinstance(e, ValueError) and self.regression_type == "multinomial" or self.regression_type == "multi" or self.regression_type == "logistic":
                         count_dict = Counter(y_clust[k])
                         if len(count_dict) == 1:
                             self.direct_val[k] = y_clust[k][0]
+                    else:
+                        print(e)
+                        print(k)
+                        return
 
         if len(self.models) > 0:
             for k, v in self.models.items():
