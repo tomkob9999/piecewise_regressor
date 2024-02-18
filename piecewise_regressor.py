@@ -33,7 +33,7 @@ class piecewise_regressor:
         min_aic = float("inf")
         min_bic = float("inf")
         for j in range(len(models)):
-            if aic[j] > min_aic or bic[j] > min_bic:
+            if aic[j] > min_aic and bic[j] > min_bic:
                 num_clusters = j
                 break
             if aic[j] < min_aic:
