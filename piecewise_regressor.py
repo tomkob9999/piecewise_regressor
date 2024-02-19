@@ -1,6 +1,6 @@
 ### Name: piecewise_regressor
 # Author: tomio kobayashi
-# Version: 1.0.5
+# Version: 1.0.6
 # Date: 2024/02/19
 
 
@@ -9,11 +9,14 @@ import matplotlib.pyplot as plt
 from sklearn.mixture import GaussianMixture
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from collections import Counter
+from sklearn.linear_model import Lasso
+from sklearn.linear_model import Ridge
+from sklearn.linear_model import ElasticNet
 
 class piecewise_regressor:
     
     def __init__(self, regression_type="linear", max_clusters=20):
-    # regression_type = {"linear", "multinomial", "logistic"}
+    # regression_type = {"linear", "multinomial", "logistic", "lasso", "elastic"}
         self.gmm = None
         self.regression_type = regression_type
         self.max_clusters = max_clusters
@@ -76,6 +79,10 @@ class piecewise_regressor:
                     model = LogisticRegression(multi_class='multinomial', solver='lbfgs', max_iter=1000)
                 elif self.regression_type == "logistic":
                     model = LogisticRegression(solver='lbfgs', max_iter=1000)
+                elif self.regression_type == "lasso":
+                    model = Lasso()
+                elif self.regression_type == "elastic":
+                    model = ElasticNet()
                 else:
                     model = LinearRegression()
 
