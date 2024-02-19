@@ -110,7 +110,7 @@ from sklearn.exceptions import ConvergenceWarning
 
 warnings.filterwarnings("ignore", category=ConvergenceWarning, module="sklearn")
 
-data = load_breast_cancer()
+data = load_diabetes()
 
 X, y = data.data, data.target
 
