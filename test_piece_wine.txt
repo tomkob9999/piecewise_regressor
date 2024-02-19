@@ -1,0 +1,31 @@
+
+from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.model_selection import train_test_split
+import warnings
+from sklearn.exceptions import ConvergenceWarning
+from sklearn.datasets import load_wine
+
+warnings.filterwarnings("ignore", category=ConvergenceWarning, module="sklearn")
+
+data = load_wine()
+X, y = data.data, data.target
+
+add_quads = True
+print("len(X[0])", len(X[0]))
+if add_quads:
+    X_copy = X.tolist()
+    for j in range(len(X[0])):
+        for i, xx in enumerate(X):
+            X_copy[i].append(X[i][j]**2 if X[i][j] >= 0 else (X[i][j]**2)*-1)
+            X_copy[i].append(np.sqrt(X[i][j]) if X[i][j] >= 0 else np.sqrt(X[i][j]*-1)*-1)
+    X = np.array(X_copy)
+print("len(X[0])", len(X[0]))
+    
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4)
+
+model = piecewise_regressor(regression_type="multi")
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+print(accuracy_score(y_test, y_pred))
+print("Number of clusters:", len(model.models) + len(model.direct_val))
