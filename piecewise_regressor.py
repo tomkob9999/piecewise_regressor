@@ -1,7 +1,7 @@
 ### Name: piecewise_regressor
 # Author: tomio kobayashi
-# Version: 1.0.7
-# Date: 2024/02/19
+# Version: 1.0.8
+# Date: 2024/02/20
 
 
 import numpy as np
@@ -29,9 +29,11 @@ class piecewise_regressor:
     def fit(self, X, y, use_aic=True):
 
         if self.regression_type == "multinomial" or self.regression_type == "multi":
-            self.all_model = LogisticRegression(multi_class='multinomial', solver='lbfgs', max_iter=1000)
+#             self.all_model = LogisticRegression(multi_class='multinomial', solver='lbfgs', max_iter=1000)
+            self.all_model = LogisticRegression(penalty="l1", solver="liblinear", max_iter=1000)
         elif self.regression_type == "logistic":
-            self.all_model = LogisticRegression(solver='lbfgs', max_iter=1000)
+#             self.all_model = LogisticRegression(solver='lbfgs', max_iter=1000)
+            self.all_model = LogisticRegression(penalty="l1", solver="liblinear", max_iter=1000)
         elif self.regression_type == "lasso":
             self.all_model = Lasso()
         elif self.regression_type == "elastic":
@@ -80,9 +82,11 @@ class piecewise_regressor:
             for k, v in X_clust.items():
                 model = None
                 if self.regression_type == "multinomial" or self.regression_type == "multi":
-                    model = LogisticRegression(multi_class='multinomial', solver='lbfgs', max_iter=1000)
+#                     model = LogisticRegression(multi_class='multinomial', solver='lbfgs', max_iter=1000)
+                    model = LogisticRegression(penalty="l1", solver="liblinear", max_iter=1000)
                 elif self.regression_type == "logistic":
-                    model = LogisticRegression(solver='lbfgs', max_iter=1000)
+#                     model = LogisticRegression(solver='lbfgs', max_iter=1000)
+                    model = LogisticRegression(penalty="l1", solver="liblinear", max_iter=1000)
                 elif self.regression_type == "lasso":
                     model = Lasso()
                 elif self.regression_type == "elastic":
