@@ -1,6 +1,6 @@
 ### Name: piecewise_regressor
 # Author: tomio kobayashi
-# Version: 1.0.9
+# Version: 1.1.0
 # Date: 2024/02/20
 
 
@@ -123,14 +123,6 @@ class piecewise_regressor:
         if len(self.models) == 0 and len(self.direct_val) == 0:
             return self.all_model.predict(X)
         else:
-            res = []
-            for x in X:
-                clust = self.gmm.predict([x])[0]
-                if clust in self.direct_val:
-                    res.append(self.direct_val[clust])
-                else:
-                    if clust in self.models:
-                        res.append(self.models[clust].predict([x])[0])
-                    else:
-                        res.append(self.all_model.predict([x])[0])
-        return np.array(res)
+            clusts = self.gmm.predict(X)
+#             return np.array([self.direct_val[clusts[i]] if clusts[i] in self.direct_val else (self.models[clusts[i]].predict([x])[0] if clusts[i] in self.models else res.append(self.all_model.predict([x])[0])) for i, x in enumerate(X)])
+            return np.array([self.direct_val[clusts[i]] if clusts[i] in self.direct_val else self.models[clusts[i]].predict([x])[0] for i, x in enumerate(X)])          
