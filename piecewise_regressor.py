@@ -1,6 +1,6 @@
 ### Name: piecewise_regressor
 # Author: tomio kobayashi
-# Version: 1.0.8
+# Version: 1.0.9
 # Date: 2024/02/20
 
 
@@ -26,7 +26,7 @@ class piecewise_regressor:
         self.intercept_ = None
         self.all_model = None
         
-    def fit(self, X, y, use_aic=True):
+    def fit(self, X, y, use_aic=False):
 
         if self.regression_type == "multinomial" or self.regression_type == "multi":
 #             self.all_model = LogisticRegression(multi_class='multinomial', solver='lbfgs', max_iter=1000)
