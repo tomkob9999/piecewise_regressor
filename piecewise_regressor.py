@@ -97,8 +97,12 @@ class piecewise_regressor:
                 try:
                     model.fit(v, y_clust[k])
                     coefs = model.coef_[0] if self.regression_type == "multinomial" or self.regression_type == "multi"  or self.regression_type == "logistic" else model.coef_
+#                     print(k, "coefs", coefs)
                     if not all([cf == 0 for cf in coefs]):
                         self.models[k] = model
+                    else:
+#                         print("zero coef")
+                        self.models[k] = self.all_model
                 except Exception as e:
                     if isinstance(e, ValueError) and self.regression_type == "multinomial" or self.regression_type == "multi" or self.regression_type == "logistic":
                         count_dict = Counter(y_clust[k])
@@ -118,6 +122,7 @@ class piecewise_regressor:
             self.coef_ = self.all_model.coef_
             self.intercept_ = self.all_model.intercept_
             
+#         print("self.models", self.models)
         
     def predict(self, X):
         if len(self.models) == 0 and len(self.direct_val) == 0:
@@ -125,5 +130,5 @@ class piecewise_regressor:
         else:
             clusts = self.gmm.predict(X)
 #             return np.array([self.direct_val[clusts[i]] if clusts[i] in self.direct_val else (self.models[clusts[i]].predict([x])[0] if clusts[i] in self.models else res.append(self.all_model.predict([x])[0])) for i, x in enumerate(X)])
-#             return np.array([self.direct_val[clusts[i]] if clusts[i] in self.direct_val else self.models[clusts[i]].predict([x])[0] for i, x in enumerate(X)])        
-            return np.array([self.direct_val[clusts[i]] if clusts[i] in self.direct_val else self.models[clusts[i]].predict([x])[0] if clusts[i] in self.models else self.all_model.predict([x])[0] for i, x in enumerate(X)]) 
+            return np.array([self.direct_val[clusts[i]] if clusts[i] in self.direct_val else self.models[clusts[i]].predict([x])[0] for i, x in enumerate(X)])        
+#             return np.array([self.direct_val[clusts[i]] if clusts[i] in self.direct_val else self.models[clusts[i]].predict([x])[0] if clusts[i] in self.models else self.all_model.predict([x])[0] for i, x in enumerate(X)])   
