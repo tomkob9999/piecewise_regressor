@@ -1,6 +1,6 @@
 ### Name: piecewise_regressor
 # Author: tomio kobayashi
-# Version: 1.1.1
+# Version: 1.1.2
 # Date: 2024/03/15
 
 
@@ -26,7 +26,7 @@ class piecewise_regressor:
         self.intercept_ = None
         self.all_model = None
         
-    def fit(self, X, y, use_aic=False):
+    def fit(self, X, y, use_aic=True):
 
         if self.regression_type == "multinomial" or self.regression_type == "multi":
 #             self.all_model = LogisticRegression(multi_class='multinomial', solver='lbfgs', max_iter=1000)
@@ -42,6 +42,18 @@ class piecewise_regressor:
             self.all_model = LinearRegression()
                     
         self.all_model.fit(X, y)
+        
+#         Testing
+#         n_components = np.arange(1, 5)  # Number of clusters to try
+#         models = [GaussianMixture(n, covariance_type='full').fit(X) for n in n_components]
+#         aic = [m.aic(X) for m in models]
+#         bic = [m.bic(X) for m in models]
+#         plt.plot(n_components, aic, label='AIC')
+#         plt.plot(n_components, bic, label='BIC')
+#         plt.legend(loc='best')
+#         plt.xlabel('n_components')
+#         plt.ylabel('Information Criterion')
+#         plt.show()
 
         num_clusters = 1
         gmm = None
@@ -53,8 +65,8 @@ class piecewise_regressor:
                 gmm = GaussianMixture(n, covariance_type='full').fit(X)
                 aic = gmm.aic(X)
                 bic = gmm.bic(X)
-#                 print("n", n, "prev_aic", prev_aic, "aic", aic)
-#                 print("n", n, "prev_bic", prev_bic, "bic", bic)
+                print("n", n, "prev_aic", prev_aic, "aic", aic)
+                print("n", n, "prev_bic", prev_bic, "bic", bic)
                 num_clusters = n
                 if (use_aic and aic > prev_aic) or (not use_aic and bic > prev_bic):
                     num_clusters = n-1
