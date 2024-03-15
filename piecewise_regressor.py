@@ -1,7 +1,7 @@
 ### Name: piecewise_regressor
 # Author: tomio kobayashi
-# Version: 1.1.0
-# Date: 2024/02/20
+# Version: 1.1.1
+# Date: 2024/03/15
 
 
 import numpy as np
@@ -125,4 +125,5 @@ class piecewise_regressor:
         else:
             clusts = self.gmm.predict(X)
 #             return np.array([self.direct_val[clusts[i]] if clusts[i] in self.direct_val else (self.models[clusts[i]].predict([x])[0] if clusts[i] in self.models else res.append(self.all_model.predict([x])[0])) for i, x in enumerate(X)])
-            return np.array([self.direct_val[clusts[i]] if clusts[i] in self.direct_val else self.models[clusts[i]].predict([x])[0] for i, x in enumerate(X)])          
+#             return np.array([self.direct_val[clusts[i]] if clusts[i] in self.direct_val else self.models[clusts[i]].predict([x])[0] for i, x in enumerate(X)])        
+            return np.array([self.direct_val[clusts[i]] if clusts[i] in self.direct_val else self.models[clusts[i]].predict([x])[0] if clusts[i] in self.models else self.all_model.predict([x])[0] for i, x in enumerate(X)]) 
