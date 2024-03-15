@@ -65,8 +65,8 @@ class piecewise_regressor:
                 gmm = GaussianMixture(n, covariance_type='full').fit(X)
                 aic = gmm.aic(X)
                 bic = gmm.bic(X)
-                print("n", n, "prev_aic", prev_aic, "aic", aic)
-                print("n", n, "prev_bic", prev_bic, "bic", bic)
+#                 print("n", n, "prev_aic", prev_aic, "aic", aic)
+#                 print("n", n, "prev_bic", prev_bic, "bic", bic)
                 num_clusters = n
                 if (use_aic and aic > prev_aic) or (not use_aic and bic > prev_bic):
                     num_clusters = n-1
